@@ -1,0 +1,18 @@
+# TBD
+
+## Installation
+
+Necessary to install Tkinter [[doc](https://tkdocs.com/tutorial/install.html)]
+
+## Usage
+
+## Contributing
+
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+
+## TODO List
+
+- [ ] Todo1
+- [ ] Todo2

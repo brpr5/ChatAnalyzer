@@ -1,4 +1,4 @@
-# TBD
+# ChatAnalyser
 
 ## Installation
 
@@ -14,5 +14,22 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 ## TODO List
 
-- [ ] Todo1
-- [ ] Todo2
+### Initial Goals
+
+- [X] Create Repository
+- [ ] Parsers
+
+### Data Aquisition/Cleaning
+
+- [X] Regex for hour, user and message
+
+### Website
+
+- [ ] Init basic web interface  
+
+### Machine Learning
+
+- [ ] Sentiment Analysis
+- [ ] Analysis Twitter
+
+

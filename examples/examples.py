@@ -1,4 +1,4 @@
-from .. import data
+from chatanalyzer import data
 
 import sys
 

@@ -1,4 +1,4 @@
-from .. import data
+from atanalyzer import data
 
 import sys
 

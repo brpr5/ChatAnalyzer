@@ -96,7 +96,7 @@ class Plot:
         filename = kwargs.get('filename', 'image.png')
         fmt = kwargs.get('fmt', 'g')
 
-        df = self.pivot(df=df, 
+        df = pivot(df=df, 
                         rows=rows, 
                         columns=columns, 
                         calc_field=calc_field,
@@ -110,27 +110,6 @@ class Plot:
         plt.savefig(self.folder_location + filename)
         # plt.show()
 
-    def pivot(self, df, rows, columns, calc_field, aggfunc):
-        """[summary]
-
-        Args:
-            df ([type]): [description]
-            rows ([type]): [description]
-            columns ([type]): [description]
-            calc_field ([type]): [description]
-            type ([type]): [description]
-                opts: np.mean, np.size
-
-        Returns:
-            [type]: [description]
-        """
-
-        df_pivot = df.pivot_table(  values=calc_field,
-                                    index=rows,
-                                    columns=columns,
-                                    aggfunc=aggfunc).dropna(axis=0, how='all')
-
-        return df_pivot
 
     def plot_heatmap_time(self, df, aggfunc, **kwargs):
         #reference https://dfrieds.com/data-visualizations/when-use-heatmaps.html
@@ -162,6 +141,28 @@ class Plot:
         # ax.axes.set_title("Message by day and hour", fontsize=24, y=1.01)
         ax.set(xlabel='Weekday', ylabel='Hour');
         plt.savefig(self.folder_location + filename)
+
+def pivot(df, rows, columns, calc_field, aggfunc):
+    """[summary]
+
+    Args:
+        df ([type]): [description]
+        rows ([type]): [description]
+        columns ([type]): [description]
+        calc_field ([type]): [description]
+        type ([type]): [description]
+            opts: np.mean, np.size
+
+    Returns:
+        [type]: [description]
+    """
+
+    df_pivot = df.pivot_table(  values=calc_field,
+                                index=rows,
+                                columns=columns,
+                                aggfunc=aggfunc).dropna(axis=0, how='all')
+
+    return df_pivot
 
 if __name__ == "__main__":
     from data import create_dataframe, transform_dataframe

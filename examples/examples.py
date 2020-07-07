@@ -1,7 +1,12 @@
-from data import create_dataframe, transform_dataframe
-from plots import *
+from .. import data
 
+import sys
 
+modulenames = set(sys.modules) & set(globals())
+allmodules = [sys.modules[name] for name in modulenames]
+print(allmodules)
+# from plots import *
+# import data
 df = transform_dataframe(create_dataframe())
 
 plot_bar_grouped(df=df, 

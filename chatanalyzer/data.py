@@ -6,7 +6,7 @@ from datetime import date
 import string
 import random
 import pickle
-import plots 
+# import plots 
 
 #TODO: maybe a better name, because it was added 'media'
 RE_FORMATS = {

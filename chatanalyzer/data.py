@@ -1,12 +1,22 @@
+# Standard library imports
 import re
-import pandas as pd
-import numpy as np
-import emoji
+import pickle
 from datetime import date
 import string
 import random
-import pickle
-# import plots 
+import os
+import sys
+from tkinter import filedialog, Tk
+
+# Third party imports
+import pandas as pd
+import numpy as np
+import emoji
+
+# Local application imports
+
+
+
 
 #TODO: maybe a better name, because it was added 'media'
 RE_FORMATS = {
@@ -25,6 +35,21 @@ RE_FORMATS = {
 SKIN_COLORS = [value for key, value in emoji.EMOJI_ALIAS_UNICODE.items() if "fitzpatrick" in key]
 GENDER = ["♂", "♀"]
 
+
+def get_file():
+    root = Tk()
+    root.withdraw()
+    file = filedialog.askopenfile(filetypes=[("Text file", "*.txt"), ("Zip file", "*.zip"), ("Comma-separated values", "*.csv")],
+                                  initialdir=os.getcwd(),
+                                  title='Choose a file')
+    
+    if not file:
+        sys.exit(0)
+
+
+    file_path = os.path.abspath(file.name)
+    # file_name = os.path.basename(file.name)
+    return file_path
 
 def scramble_text_maintain_order(df, column_name="person"):
     """ This will change all the values for a scrambled one but it will maintain the same reference.
@@ -79,6 +104,7 @@ def get_emojis(txt):
 
 
 def create_dataframe(file_path="full.txt"):
+    file_path = get_file()
     """Get a file Path of the file with the conversation and create a dataframe
 
     Args:
@@ -157,7 +183,7 @@ def save_dataframe(df, name="dataset"):
 
 if __name__ == "__main__":
     df = transform_dataframe(create_dataframe())
-
+    # get_file()
     print(df)
     # print(dic)
     # save_dataframe(df)

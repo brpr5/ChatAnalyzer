@@ -8,9 +8,11 @@ import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+from colorama import init, Back, Fore, Style
+init(autoreset=True)
 
 # Local application imports
-
+import chatanalyzer.utils as utils
 
 
 #TODO: review the resize of the images because it will depend on the number of people and months
@@ -24,14 +26,15 @@ _CONFIGS = {
 _FOLDER = "examples/imgs"
 class Plot:
     def __init__(self, folder_location):
-        self.folder_location = folder_location
+        #TODO: Currently it is not possible to add new location
+        self.folder_location = _FOLDER #TODO: how to set folder_location in a class and still use in a decorator? (save_fig)
         self.create_folder() #TODO: is this a good a idea?
 
     def create_folder(self):
         try:
             os.mkdir(self.folder_location)
         except OSError:
-            print("Folder %s already exists." % self.folder_location)
+            print(Back.YELLOW + Fore.BLACK + Style.BRIGHT + "Folder %s already exists." % self.folder_location)
         else:
             print("Folder %s was created succesfully." % self.folder_location)
 
@@ -41,19 +44,23 @@ class Plot:
         """
         def outer(func):
             def inner(*args, **kwargs):
-                artist = func(*args)
-                if 'filename' in param.keys():
-                    print('filename')
-                    plt.savefig(param['filename'])
+
+                if 'filename' in kwargs.keys():
+                    filename = kwargs['filename']
+                    try:
+                        plt.savefig(filename)
+                        utils.print_successful("The file %s was saved successfully in %s" % (filename, _FOLDER))
+                    except:
+                        utils.print_successful("Error in saving the file %s in %s" % (filename, _FOLDER))
                 if 'show' in param.keys() and param["show"]:
                     print('show')
                     plt.show()
                 else:
-                    return artist
+                    pass
             return inner
         return outer
 
-    # @save_fig(**{'filename':'teste.png', 'show':_CONFIGS["show_plots"]})
+    @save_fig()
     def plot_bar_grouped(self, df, selected_columns, **kwargs):
         """[summary]
 
@@ -75,9 +82,9 @@ class Plot:
         ax.set_ylabel(ylabel)
         ax.set_title(title)
         plt.tight_layout()
-        plt.savefig(self.folder_location + filename)
         # plt.show()
 
+    @save_fig()
     def plot_heatmap(self, df, rows, columns, calc_field, aggfunc, **kwargs):
         """[summary]
 
@@ -110,7 +117,7 @@ class Plot:
         plt.savefig(self.folder_location + filename)
         # plt.show()
 
-
+    @save_fig()
     def plot_heatmap_time(self, df, aggfunc, **kwargs):
         #reference https://dfrieds.com/data-visualizations/when-use-heatmaps.html
 
@@ -168,3 +175,10 @@ if __name__ == "__main__":
     from data import create_dataframe, transform_dataframe
 
     df = transform_dataframe(create_dataframe())
+    # print(Back.GREEN + Fore.RED + Style.BRIGHT + "teste")
+    # Plot.plot_bar_grouped(df=df, 
+                    # selected_columns=["month", "person"], 
+                    # xlabel='Date', 
+                    # ylabel='Quantity', 
+                    # title='Messages',
+                    # filename="bar_message_sent_date_person.png")

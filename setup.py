@@ -8,7 +8,7 @@ except ImportError:
     from pip.req import parse_requirements
 
 def load_requirements(fname):
-    reqs = parse_requirements(fname, session="test")
+    reqs = parse_requirements(fname, session=False)
     return [str(ir.req) for ir in reqs]
 
 

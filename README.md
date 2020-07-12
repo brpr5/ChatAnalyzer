@@ -28,7 +28,7 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 - [ ] Init basic web interface  
 
 ### Machine Learning
-- [X] LDA text mining
+- [ ] LDA text mining
 - [ ] Sentiment Analysis
 - [ ] Analysis Twitter
 

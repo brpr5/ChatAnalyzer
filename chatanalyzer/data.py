@@ -92,7 +92,7 @@ def create_dataframe(file_path="full.txt"):
 
     pat_all_message = re.compile(RE_FORMATS["all_message"], re.S | re.M)
 
-    with open(file_path, "r") as f:
+    with open(file_path, "r", encoding = 'utf-8') as f:
         contents = [m.group("all_message").strip().replace('\n', ' ')
                     for m in pat_all_message.finditer(f.read())]
 
@@ -126,11 +126,13 @@ def transform_dataframe(df, scramble=True):
     df['date'] = pd.to_datetime(df['date'])
     # TODO is_media will be different based on the language
     df["is_media"] = df["message"].str.contains('<Arquivo de mídia oculto>')
+    df["is_deleted"] = df["message"].str.contains('Essa mensagem foi apagada')
     df["message"] = df["message"].str.lower()
     df["size_message"] = df["message"].str.len()
     df["words"] = df["message"].str.split().str.len()
     df["emojis"] = df["message"].apply(lambda row: get_emojis(row))
     df['day_name'] = df['date'].dt.day_name()
+    df['day'] = df['date'].dt.day
     df['hour'] = df['date'].dt.hour
 
     if(scramble):

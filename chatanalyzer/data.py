@@ -57,12 +57,16 @@ def get_file(file_path=None):
     return file_path
 
 def scramble_text_maintain_order(df, column_name="person"):
-    """ This will change all the values for a scrambled one but it will maintain the same reference.
+    """This will change all the values for a scrambled one but it will maintain the same reference.
 
-    Args:
-        df (DataFrame): dataframe with the information for all messages with a specific column
-        column_name (str, optional): [description]. Defaults to "person".
+    Parameters
+    ----------
+    df : DataFrame
+        dataframe with the information for all messages with a specific column
+    column_name : str, optional
+        column that will be used to keep reference, by default "person"
     """
+
     list_names = df[column_name].unique()
 
     dict_names = {name: scramble_text(name) for name in list_names}
@@ -71,15 +75,19 @@ def scramble_text_maintain_order(df, column_name="person"):
 
 
 def scramble_text(txt):
-    """ It changes completely the meaning of a string in order to lose its readability
+    """Completely changes the meaning of a string in order lose its readability
 
-    Args:
-        msg (str):   a string message that will change accordingly if is lowercase / uppercase and number.
-                        Punctuation and emojis remains the same.
+    Parameters
+    ----------
+    txt : str
+        message that will change accordingly if it is lowercase, uppercase or a number.
+        Punctution and emojis remain the same
 
-    Returns:
-        [str]: the string with its chararacters scrambled.
-    """
+    Returns
+    -------
+    str
+        string with its characters scrambled
+    """   
 
     if not txt:
         return None
@@ -92,16 +100,20 @@ def scramble_text(txt):
 
 
 def get_emojis(txt):
-    """ Will return only the emojis in the text
-    This will return the base emoji, color and gender separated.
+    """Get emojis in a given string and return a array with all emojis, color skins and gender
+
+    Parameters
+    ----------
+    txt : str
+        text to get emoji information
+
+    Returns
+    -------
+    array
+        array with base-emoji, color skins and gender
+    """    
+
     #TODO: is there a way to maintain the color and gender of a emoji in a array?
-
-    Args:
-        txt (str): text that will be retrieved the emojis in it
-
-    Returns:
-        array: array with all emojis
-    """
     if not txt:
         return None
 
@@ -109,18 +121,23 @@ def get_emojis(txt):
 
 
 def create_dataframe(file_path=None):
-    if not file_path:
-        file_path = get_file(file_path)
-    """Get a file Path of the file with the conversation and create a dataframe
+    """Create a dataframe based on the file path given
 
-    Args:
-        file_path (str, optional): address to the file with the conversation. Defaults to "full.txt".
+    Parameters
+    ----------
+    file_path : str, optional
+        address to the file with the conversation, by default None
 
-    Returns:
-        DataFrame: raw dataframe of the conversation
+    Returns
+    -------
+    DataFrame
+        raw dataframe of the conversation
     """
     # TODO: create an interface to choose the file, e.g. Tkinter
     # TODO: the pattern should be able to identify when a message is forward
+
+    if not file_path:
+        file_path = get_file(file_path)
 
     pat_all_message = re.compile(RE_FORMATS["all_message"], re.S | re.M)
 
@@ -139,44 +156,67 @@ def create_dataframe(file_path=None):
     return df
 
 
-def transform_dataframe(df, scramble=True):
-    """This will transform the dataframe with the information wanted. E.g., hour, emojis,  size etc
+def transform_dataframe(df, scramble=True, lowercase=False):
+    """Transforms the DataFrame and add a few more columns based on the raw information
 
-    Args:
-        df ([DataFrame]): raw dataframe
-        scramble (bool, optional):  if False it will not change the information of the content
-                                    else it will change every letter and number. Defaults to True.
+    Parameters
+    ----------
+    df : DataFrame
+        raw DataFrame with the conversation information, base columns: date, person, message
+    scramble : bool, optional
+        if False it will not change the content information 
+        else it will change every letter and number thus changing its meaning, by default True
+    lowercase : bool
+        if the message should be changed to lowercase, by default False
+    Returns
+    -------
+    DataFrame
+        a new dataframe with more columns added
+    """    
 
-    Returns:
-        DataFrame: dataframe with the information transformed
-    """
+    
+    # TODO: is_media message will be different based on the language
 
     # TODO: date may be necessary to identify by itself because depending on the language it will be different
-    df["month"] = pd.to_datetime(df["date"], format="%d/%m/%Y %H:%M").dt.to_period("M")
-    df['date'] = pd.to_datetime(df['date'])
-    # TODO is_media will be different based on the language
+    # transform date information into datetime
+    df['date'] = pd.to_datetime(df['date'], format="%d/%m/%Y %H:%M") #
+    # 'month' information like 01-2020 for January, 2020
+    df["month"] = df["date"].dt.to_period("M")
+    # create colum that will show when a user have sent a file #TODO: distinguish between media with and without message
     df["is_media"] = df["message"].str.contains('<Arquivo de mídia oculto>')
-    df["message"] = df["message"].str.lower()
+    # get the size of the message
     df["size_message"] = df["message"].str.len()
+    # number of the words sent by user #TODO: should remove emojis? 
     df["words"] = df["message"].str.split().str.len()
+    # get an array of all emojis sent
     df["emojis"] = df["message"].apply(lambda row: get_emojis(row))
+    # weekday name, e.g.: Sunday, Monday, etc
     df['day_name'] = df['date'].dt.day_name()
+    # closed hour it was sent the message, e.g.: 1, 2, 3 o'clock
     df['hour'] = df['date'].dt.hour
 
-    if(scramble):
+    
+    if lowercase:
+        df["message"] = df["message"].str.lower()
+
+    if scramble:
         df['message'] = df['message'].apply(lambda x: scramble_text(x))
         scramble_text_maintain_order(df, 'person')
+    
     return df
 
 
 def save_dataframe(df, name="dataset"):
-    """ This function will save the dataset in different ways.
-    Currently it is only allows pickle
+    """Save dataset in different formats #TODO: pending add more formats
 
-    Args:
-        df (DataFrame): dataframe that will be saved
-        name (str, optional): name of the file. Defaults to "dataset".
-    """
+    Parameters
+    ----------
+    df : DataFrame
+        dataframe that will be saved
+    name : str, optional
+        name of the file, by default "dataset"
+    """    
+    
     df.to_pickle(f"{name}.pkl")
 
 
@@ -187,16 +227,10 @@ def save_dataframe(df, name="dataset"):
 
 if __name__ == "__main__":
 
-    from plots import Plot
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from matplotlib import gridspec
-    # plot = Plot("imgs/")
-
     df_created = create_dataframe("examples/_20200712.txt")
-    # df_transformed = transform(dataframe_created, scramble_text=False)
-    # df = transform_dataframe(create_dataframe("examples/_.txt"), scramble=False)
+    df_transformed = transform_dataframe(df_created, scramble=False, lowercase=True)
+
     print(df_created)
-    # list_names = df["person"].dropna().unique()
+
 
     #TODO: create subplots when adding several person

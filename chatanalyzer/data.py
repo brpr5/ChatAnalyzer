@@ -1,4 +1,3 @@
-# Standard library imports
 import re
 import pickle
 from datetime import date
@@ -7,7 +6,7 @@ import random
 import os
 import sys
 from tkinter import filedialog, Tk
-
+from math import ceil
 # Third party imports
 import pandas as pd
 import numpy as np
@@ -17,15 +16,16 @@ import emoji
 
 
 
-
-#TODO: maybe a better name, because it was added 'media'
+#TODO: create a module for each based on a common class (Inheritance)
 RE_FORMATS = {
-    "all_message": r"(?P<all_message>\d{2}\/\d{2}\/\d{2}\d{2}.*?)(?=^^\d{2}\/\d{2}\/\d{2}\d{2}|\Z)",
+    "all_message": r"(?P<all_message>\d{2}\/\d{2}\/\d{2}\d{2}.*?)(?=\d{2}\/\d{2}\/\d{2}\d{2})",
     "whatsapp": {
-        "pt": {
             "text": r"(?P<date>[0-9\/]+\s[0-9:]+)\s-\s(?P<person>[^:]+):\s(?P<message>.+)",
-            "media": '<Arquivo de mídia oculto>'
-        }
+            "internal_message": r"((?P<date>[0-9\/]+\s[0-9:]+)\s-\s)?((?P<message>.*))",
+            "media_not_uploaded": '<Arquivo de mídia oculto>',
+            "to_rmv":[r"^(O histórico de conversas foi anexado ao e-mail como um arquivo.+)$"],
+            "file_name":r"‎(?P<file_name>[\S]*)\s(?=\(arquivo anexado\))",
+            "date":r"\[?([\d/-]+\s?[\d:]+)\]?\s[-]?\s?"
     },
     "telegram": {
     },
@@ -36,13 +36,18 @@ SKIN_COLORS = [value for key, value in emoji.EMOJI_ALIAS_UNICODE.items() if "fit
 GENDER = ["♂", "♀"]
 
 
-def get_file():
+def get_file(file_path=None):
+
+    if file_path:
+        return file_path
+
     root = Tk()
     root.withdraw()
-    file = filedialog.askopenfile(filetypes=[("Text file", "*.txt"), ("Zip file", "*.zip"), ("Comma-separated values", "*.csv")],
-                                  initialdir=os.getcwd(),
-                                  title='Choose a file')
-    
+    file = filedialog.askopenfile(
+        filetypes=[("Text file", "*.txt"), ("Zip file", "*.zip"), ("Comma-separated values", "*.csv")],
+        initialdir=os.getcwd(),
+        title='Choose a file')
+
     if not file:
         sys.exit(0)
 
@@ -69,14 +74,14 @@ def scramble_text(txt):
     """ It changes completely the meaning of a string in order to lose its readability
 
     Args:
-        msg (str):   a string message that will change accordingly if is lowercase / uppercase and number. 
+        msg (str):   a string message that will change accordingly if is lowercase / uppercase and number.
                         Punctuation and emojis remains the same.
 
     Returns:
         [str]: the string with its chararacters scrambled.
     """
 
-    if(txt == None):
+    if not txt:
         return None
 
     return "".join([random.choice(string.ascii_lowercase) if letter in string.ascii_lowercase
@@ -97,14 +102,15 @@ def get_emojis(txt):
     Returns:
         array: array with all emojis
     """
-    if(txt == None):
+    if not txt:
         return None
 
     return [word for word in txt if word in emoji.UNICODE_EMOJI]
 
 
-def create_dataframe(file_path="full.txt"):
-    file_path = get_file()
+def create_dataframe(file_path=None):
+    if not file_path:
+        file_path = get_file(file_path)
     """Get a file Path of the file with the conversation and create a dataframe
 
     Args:
@@ -124,10 +130,9 @@ def create_dataframe(file_path="full.txt"):
 
     entry_columns = ["date", "person", "message"]
     values = []
-    pat_entries = re.compile(RE_FORMATS["whatsapp"]["pt"]["text"])
+    pat_entries = re.compile(RE_FORMATS["whatsapp"]["text"])
     for line in contents:
-        values.append([m.group(var)
-                       for var in entry_columns for m in pat_entries.finditer(line)])
+        values.append([m.group(var) for var in entry_columns for m in pat_entries.finditer(line)])
 
     df = pd.DataFrame(values, columns=entry_columns)
 
@@ -139,7 +144,7 @@ def transform_dataframe(df, scramble=True):
 
     Args:
         df ([DataFrame]): raw dataframe
-        scramble (bool, optional):  if False it will not change the information of the content 
+        scramble (bool, optional):  if False it will not change the information of the content
                                     else it will change every letter and number. Defaults to True.
 
     Returns:
@@ -147,8 +152,7 @@ def transform_dataframe(df, scramble=True):
     """
 
     # TODO: date may be necessary to identify by itself because depending on the language it will be different
-    df["month"] = pd.to_datetime(
-        df["date"], format="%d/%m/%Y %H:%M").dt.to_period("M")
+    df["month"] = pd.to_datetime(df["date"], format="%d/%m/%Y %H:%M").dt.to_period("M")
     df['date'] = pd.to_datetime(df['date'])
     # TODO is_media will be different based on the language
     df["is_media"] = df["message"].str.contains('<Arquivo de mídia oculto>')
@@ -182,9 +186,17 @@ def save_dataframe(df, name="dataset"):
 
 
 if __name__ == "__main__":
-    df = transform_dataframe(create_dataframe())
-    # get_file()
-    print(df)
-    # print(dic)
-    # save_dataframe(df)
-    # print(df)
+
+    from plots import Plot
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from matplotlib import gridspec
+    # plot = Plot("imgs/")
+
+    df_created = create_dataframe("examples/_20200712.txt")
+    # df_transformed = transform(dataframe_created, scramble_text=False)
+    # df = transform_dataframe(create_dataframe("examples/_.txt"), scramble=False)
+    print(df_created)
+    # list_names = df["person"].dropna().unique()
+
+    #TODO: create subplots when adding several person

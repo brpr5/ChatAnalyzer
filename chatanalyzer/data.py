@@ -1,3 +1,4 @@
+# Standard library imports
 import re
 import pickle
 from datetime import date
@@ -7,13 +8,14 @@ import os
 import sys
 from tkinter import filedialog, Tk
 from math import ceil
+import warnings
+
 # Third party imports
 import pandas as pd
 import numpy as np
 import emoji
 
 # Local application imports
-
 
 
 #TODO: create a module for each based on a common class (Inheritance)
@@ -37,7 +39,19 @@ GENDER = ["♂", "♀"]
 
 
 def get_file(file_path=None):
+    """Get file path
+    If no file path is given to function, it will open a File Dialog
 
+    Parameters
+    ----------
+    file_path : string, optional
+        file path to the file, by default None
+
+    Returns
+    -------
+    str
+        file path of the file
+    """
     if file_path:
         return file_path
 
@@ -56,7 +70,7 @@ def get_file(file_path=None):
     # file_name = os.path.basename(file.name)
     return file_path
 
-def scramble_text_maintain_order(df, column_name="person"):
+def scramble_text_keep_reference(df, column_name="person"):
     """This will change all the values for a scrambled one but it will maintain the same reference.
 
     Parameters
@@ -66,13 +80,17 @@ def scramble_text_maintain_order(df, column_name="person"):
     column_name : str, optional
         column that will be used to keep reference, by default "person"
     """
-
+    _LIMIT_DIFF_VALUES = 25
     list_names = df[column_name].unique()
 
-    dict_names = {name: scramble_text(name) for name in list_names}
-    for key, value in dict_names.items():
-        df.loc[df[column_name] == key, column_name] = value
-
+    if len(list_names) >= _LIMIT_DIFF_VALUES:
+        warnings.warn(f"Limit for diff values is {_LIMIT_DIFF_VALUES}. Can't scramble and keep reference of the column {column_name}")
+    else:
+        dict_names = {name: scramble_text(name) for name in list_names}
+        for key, value in dict_names.items():
+            df.loc[df[column_name] == key, column_name] = value
+    
+    return df
 
 def scramble_text(txt):
     """Completely changes the meaning of a string in order lose its readability
@@ -201,7 +219,7 @@ def transform_dataframe(df, scramble=True, lowercase=False):
 
     if scramble:
         df['message'] = df['message'].apply(lambda x: scramble_text(x))
-        scramble_text_maintain_order(df, 'person')
+        df = scramble_text_keep_reference(df, 'person')
     
     return df
 
@@ -228,7 +246,7 @@ def save_dataframe(df, name="dataset"):
 if __name__ == "__main__":
 
     df_created = create_dataframe("examples/_20200712.txt")
-    df_transformed = transform_dataframe(df_created, scramble=False, lowercase=True)
+    df_transformed = transform_dataframe(df_created, scramble=True, lowercase=True)
 
     print(df_created)
 

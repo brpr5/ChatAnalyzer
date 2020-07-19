@@ -1,3 +1,7 @@
+# Local application imports
+
+from .utils import constants
+
 # Standard library imports
 import re
 import pickle
@@ -8,15 +12,15 @@ import os
 import sys
 from tkinter import filedialog, Tk
 from math import ceil
-import warnings
+
 
 # Third party imports
 import pandas as pd
 import numpy as np
 import emoji
 
-# Local application imports
-
+import logging
+log = logging.getLogger(constants.logger_name)
 
 #TODO: create a module for each based on a common class (Inheritance)
 RE_FORMATS = {
@@ -156,6 +160,8 @@ def create_dataframe(file_path=None):
 
     if not file_path:
         file_path = get_file(file_path)
+        
+    log.info("File name: %s" % os.path.basename(file_path))
 
     pat_all_message = re.compile(RE_FORMATS["all_message"], re.S | re.M)
 
@@ -166,9 +172,13 @@ def create_dataframe(file_path=None):
     entry_columns = ["date", "person", "message"]
     values = []
     pat_entries = re.compile(RE_FORMATS["whatsapp"]["text"])
-    for line in contents:
-        values.append([m.group(var) for var in entry_columns for m in pat_entries.finditer(line)])
-
+    for idx, line in enumerate(contents):
+        line_extract = [m.group(var) for var in entry_columns for m in pat_entries.finditer(line)]
+        if not line_extract:
+            log.info(f"No pattern | Line: #{idx:6d} ~ {line}")
+        else:
+            values.append(line_extract)
+    
     df = pd.DataFrame(values, columns=entry_columns)
 
     return df
@@ -238,17 +248,10 @@ def save_dataframe(df, name="dataset"):
     df.to_pickle(f"{name}.pkl")
 
 
-
-
-
-
-
 if __name__ == "__main__":
-
+    
     df_created = create_dataframe("examples/_20200712.txt")
     df_transformed = transform_dataframe(df_created, scramble=True, lowercase=True)
-
-    print(df_created)
-
+    print(df_transformed.head(5))
 
     #TODO: create subplots when adding several person

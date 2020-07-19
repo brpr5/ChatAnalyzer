@@ -1,16 +1,15 @@
 """ Examples of plots and use of functions
 
 """
+# Local application imports
+from chatanalyzer.data import transform_dataframe, create_dataframe
+from chatanalyzer.plots import Plot
 
 # Standard library imports
 import os
 
 # Third party imports
 import numpy as np
-
-# Local application imports
-from chatanalyzer.data import transform_dataframe, create_dataframe
-from chatanalyzer.plots import Plot
 
 df = transform_dataframe(create_dataframe())
 
@@ -67,7 +66,7 @@ plot.plot_heatmap(df=df,
 
 
 plot.plot_heatmap_time(df=df, 
-                aggfunc='count', 
+                aggfunc=np.size, 
                 filename="heatmap_time_count")
 
 plot.plot_heatmap_time(df=df, 

@@ -24,7 +24,7 @@ log = logging.getLogger(constants.logger_name)
 
 #TODO: create a module for each based on a common class (Inheritance)
 RE_FORMATS = {
-    "all_message": r"(?P<all_message>\d{2}\/\d{2}\/\d{2}\d{2}.*?)(?=\d{2}\/\d{2}\/\d{2}\d{2})",
+    "all_message": r"(?P<all_message>\d{2}\/\d{2}\/\d{2}\d{2}.*?)(?=^\d{2}\/\d{2}\/\d{2}\d{2}|\Z)",
     "whatsapp": {
             "text": r"(?P<date>[0-9\/]+\s[0-9:]+)\s-\s(?P<person>[^:]+):\s(?P<message>.+)",
             "internal_message": r"((?P<date>[0-9\/]+\s[0-9:]+)\s-\s)?((?P<message>.*))",
@@ -250,7 +250,7 @@ def save_dataframe(df, name="dataset"):
 
 if __name__ == "__main__":
     
-    df_created = create_dataframe("examples/_20200712.txt")
+    df_created = create_dataframe()
     df_transformed = transform_dataframe(df_created, scramble=True, lowercase=True)
     print(df_transformed.head(5))
 

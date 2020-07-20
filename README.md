@@ -2,8 +2,8 @@
 
 ## Installation
 
-Necessary to install Tkinter [[doc](https://tkdocs.com/tutorial/install.html)]
-
+- Necessary to install Tkinter [[doc](https://tkdocs.com/tutorial/install.html)]
+- python -m chatanalyzer.**\<module_name>** to run and test modules
 ## Usage
 
 ## Contributing

@@ -2,45 +2,22 @@
 Module for machine learning
 """
 import pandas as pd
+import sys
 import os
 import re
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import nltk
 import pickle 
 import pyLDAvis
-
+import pdb
 
 from pyLDAvis import sklearn as sklearn_lda
 from sklearn.feature_extraction.text import CountVectorizer
 from data import transform_dataframe, create_dataframe
 from sklearn.decomposition import LatentDirichletAllocation as LDA
 
-sns.set_style('whitegrid')
 PATH = os.path.abspath(os.path.dirname(__file__))
-
-# Helper function
-def plot_10_most_common_words(count_data, count_vectorizer):
-    words = count_vectorizer.get_feature_names()
-    total_counts = np.zeros(len(words))
-    for t in count_data:
-        total_counts+=t.toarray()[0]
-    
-    count_dict = (zip(words, total_counts))
-    count_dict = sorted(count_dict, key=lambda x:x[1], reverse=True)[0:10]
-    words = [w[0] for w in count_dict]
-    counts = [w[1] for w in count_dict]
-    x_pos = np.arange(len(words)) 
-    
-    plt.figure(2, figsize=(15, 15/1.6180))
-    plt.subplot(title='10 most common words')
-    sns.set_context("notebook", font_scale=1.25, rc={"lines.linewidth": 2.5})
-    sns.barplot(x_pos, counts, palette='husl')
-    plt.xticks(x_pos, words, rotation=90) 
-    plt.xlabel('words')
-    plt.ylabel('counts')
-    plt.show()
 
 def print_topics(model, count_vectorizer, n_top_words):
     words = count_vectorizer.get_feature_names()
@@ -49,7 +26,7 @@ def print_topics(model, count_vectorizer, n_top_words):
         print(" ".join([words[i]
                         for i in topic.argsort()[:-n_top_words - 1:-1]]))
 
-def get_topics(filename=None,number_topics=10,number_words=10, **kwargs):
+def get_topics(filename=None,number_topics=10,number_words=10, group_type="person", **kwargs):
     """
     Function that uses LDA to get topics swith keywords
     """
@@ -61,18 +38,26 @@ def get_topics(filename=None,number_topics=10,number_words=10, **kwargs):
 
     # Remove media and deleted messages 
     df = df[(df['is_media'] == False) & (df['is_deleted'] == False)]
-
-    # group by hour
-    messages = df.groupby(['person','day','month','hour'])['message'].apply(lambda x: ' '.join(list(x)))
-
     # Only message and person columns
-    df = df[['person','message']].dropna(subset =['person'])
+    df = df.dropna(subset =['person'])
     # Remove punctuation
     df['message'] = df['message'].map(lambda x: re.sub('[,\.!?]', '', x))
     # Convert to lowercase
     df['message'] = df['message'].map(lambda x: x.lower())
+ 
+    pdb.set_trace()
+    if group_type == None:
+        messages = df['message']
 
-    # Download stopwords
+    # group by hour and person
+    if group_type == "person":
+        messages = df.groupby(['person','day','month','hour'])['message'].apply(lambda x: ' '.join(list(x)))
+
+    # group by hour only
+    #if group_type == "group":
+    #    messages = df.groupby(['day','month','hour'])['message'].apply(lambda x: ' '.join(list(x)))
+
+   # Download stopwords
     nltk.download("stopwords")
     #Initialise the count vectorizer with the English stop words
     stopwords = nltk.corpus.stopwords.words('portuguese')
@@ -84,7 +69,7 @@ def get_topics(filename=None,number_topics=10,number_words=10, **kwargs):
     # plot_10_most_common_words(count_data, count_vectorizer)
 
     # Create and fit the LDA model
-    lda = LDA(n_components=number_topics, n_jobs=-1)
+    lda = LDA(n_components=number_topics,random_state=0, n_jobs=-1)
     lda.fit(count_data)
     # Print the topics found by the LDA model
     print("Topics found via LDA:")
@@ -108,12 +93,18 @@ def get_topics(filename=None,number_topics=10,number_words=10, **kwargs):
     with open(os.path.join(output_dir,LDAvis_data_filepath), 'rb') as f:
         LDAvis_prepared = pickle.load(f)
 
-    pyLDAvis.save_html(LDAvis_prepared, os.path.join(output_dir,'./ldavis_prepared_'+ str(number_topics) + '.html'))
+    html_name = f'./ldavis_prepared_{str(number_topics)}_{group_type}.html'
+    pyLDAvis.save_html(LDAvis_prepared, os.path.join(output_dir,html_name))
 
 
 
 if __name__ == "__main__":
-    #df = transform_dataframe(create_dataframe("raw/chat_20200711.txt"), scramble=False)
-    get_topics()
+    #df = transform_dataframe(create_dataframe("raw/chat_20200711.txt"), scramble=False
+    try:
+        group_type = sys.argv[1]
+    except:
+        group_type = None
+    get_topics(group_type=group_type)
     # TODO Atualizar requirements.txt!
     # todo search for best topic numbers
+    # group by group error
